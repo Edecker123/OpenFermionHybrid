@@ -16,8 +16,8 @@ import copy
 import itertools
 import re
 import warnings
-
 import sympy
+
 
 from openfermion.config import EQ_TOLERANCE
 
@@ -334,7 +334,7 @@ class SymbolicOperator(metaclass=abc.ABCMeta):
         if not self.terms:
             return '0'
         string_rep = ''
-        for term, coeff in sorted(self.terms.items()):
+        for term, coeff in self.terms.items():
             if self._issmall(coeff):
                 continue
             tmp_string = '{} ['.format(coeff)
@@ -390,6 +390,27 @@ class SymbolicOperator(metaclass=abc.ABCMeta):
                         result_terms[new_term] = new_coefficient
             self.terms = result_terms
             return self
+        
+        elif isinstance(multiplier, SymbolicOperator): 
+            from .general_operator import GeneralOperator
+            self.__class__ = GeneralOperator
+            
+            result_terms = dict()
+            for left_term in self.terms:
+                for right_term in multiplier.terms:
+                    left_coefficient = self.terms[left_term]
+                    right_coefficient = multiplier.terms[right_term]
+
+                    new_coefficient = left_coefficient * right_coefficient
+                    new_term = left_term + right_term
+
+                    # Update result dict.
+                    if new_term in result_terms:
+                        result_terms[new_term] += new_coefficient
+                    else:
+                        result_terms[new_term] = new_coefficient
+            self.terms = result_terms
+            return self
 
         # Invalid multiplier type
         else:
@@ -411,12 +432,10 @@ class SymbolicOperator(metaclass=abc.ABCMeta):
         Raises:
             TypeError: Invalid type cannot be multiply with SymbolicOperator.
         """
-        if isinstance(multiplier, COEFFICIENT_TYPES + (type(self),)):
-            product = copy.deepcopy(self)
-            product *= multiplier
-            return product
-        else:
-            raise TypeError('Object of invalid type cannot multiply with ' + type(self) + '.')
+        
+        product = copy.deepcopy(self)
+        product *= multiplier
+        return product
 
     def __iadd__(self, addend):
         """In-place method for += addition of SymbolicOperator.
@@ -436,6 +455,16 @@ class SymbolicOperator(metaclass=abc.ABCMeta):
                 self.terms[term] = self.terms.get(term, 0.0) + addend.terms[term]
                 if self._issmall(self.terms[term]):
                     del self.terms[term]
+                    
+        elif isinstance(addend, SymbolicOperator):
+            from .general_operator import GeneralOperator
+            self.__class__ = GeneralOperator
+
+            for term in addend.terms:
+                self.terms[term] = self.terms.get(term, 0.0) + addend.terms[term]
+                if self._issmall(self.terms[term]):
+                    del self.terms[term]
+
         elif isinstance(addend, COEFFICIENT_TYPES):
             self.constant += addend
         else:
@@ -485,6 +514,14 @@ class SymbolicOperator(metaclass=abc.ABCMeta):
                     del self.terms[term]
         elif isinstance(subtrahend, COEFFICIENT_TYPES):
             self.constant -= subtrahend
+        elif isinstance(subtrahend, SymbolicOperator):
+            from .general_operator import GeneralOperator
+            self.__class__ = GeneralOperator
+
+            for term in subtrahend.terms:
+                self.terms[term] = self.terms.get(term, 0.0) - subtrahend.terms[term]
+                if self._issmall(self.terms[term]):
+                    del self.terms[term]
         else:
             raise TypeError('Cannot subtract invalid type from {}.'.format(type(self)))
         return self
@@ -753,3 +790,4 @@ class SymbolicOperator(metaclass=abc.ABCMeta):
             yield self.accumulate(
                 itertools.islice(operators, len(range(i, len(self.terms), num_groups)))
             )
+

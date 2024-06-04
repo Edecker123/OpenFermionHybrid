@@ -13,7 +13,7 @@
 
 import numpy
 
-from openfermion.ops.operators.symbolic_operator import SymbolicOperator
+from src.openfermion.ops.operators.symbolic_operator import SymbolicOperator
 
 # Define products of all Pauli operators for symbolic multiplication.
 _PAULI_OPERATOR_PRODUCTS = {

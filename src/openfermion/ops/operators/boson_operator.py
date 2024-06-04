@@ -11,7 +11,7 @@
 #   limitations under the License.
 """BosonOperator stores a sum of products of bosonic ladder operators."""
 
-from openfermion.ops.operators.symbolic_operator import SymbolicOperator
+from src.openfermion.ops.operators.symbolic_operator import SymbolicOperator
 
 
 class BosonOperator(SymbolicOperator):

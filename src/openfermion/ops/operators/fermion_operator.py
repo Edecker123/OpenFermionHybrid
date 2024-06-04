@@ -11,7 +11,7 @@
 #   limitations under the License.
 """FermionOperator stores a sum of products of fermionic ladder operators."""
 
-from openfermion.ops.operators.symbolic_operator import SymbolicOperator
+from src.openfermion.ops.operators.symbolic_operator import SymbolicOperator
 
 
 class FermionOperator(SymbolicOperator):
@@ -60,7 +60,7 @@ class FermionOperator(SymbolicOperator):
     """
 
     @property
-    def actions(self):
+    def actions(self): 
         """The allowed actions."""
         return (1, 0)
 
